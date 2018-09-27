@@ -1,0 +1,165 @@
+package Lesson3;
+
+public class BookAppl {
+    public static void main(String[] args) {
+        try {
+            do {
+                partOfFile("E:/jack/1.txt", pageNumber());
+            } while (pageNumber() != -1);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int pageNumber() {
+        Scanner scn = new Scanner(System.in);
+        File file = new File("E:/jack/1.txt");
+        long sizeFile = file.length();
+        while (true) {
+            boolean isAnInt = scn.hasNextInt();
+            if (isAnInt) {
+                int page = scn.nextInt();
+                if (page >= sizeFile / 1800) {
+                    System.out.println("is not page in text");
+                    scn.nextLine();
+                    continue;
+                }
+                return page;
+            } else {
+                System.out.println("Invalid Number");
+            }
+            scn.nextLine();
+        }
+    }
+
+    private static void partOfFile(String path, long numberPage) throws IOException {
+        long numberChar = numberPage * 1800;
+
+        RandomAccessFile raf = new RandomAccessFile(path, "r");
+        raf.seek(numberChar);
+        char[] charPage = new char[1800];
+
+        for (int i = 0; i < 1800; i++) {
+            charPage[i] = (char) raf.read();
+        }
+        printArr(charPage);
+    }
+
+    private static void printArr(char[] charPage) {
+        for (int i = 0; i < charPage.length; i++) {
+            System.out.print(charPage[i]);
+            if (i == 50) {
+                System.out.println();
+            }
+        }
+    }
+}
+
+
+
+public class FileReader {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        try {
+            File file = new File("12");
+            if (file.isDirectory()) {
+                File[] nameFiles = file.listFiles();
+                for (int i = 0; i < nameFiles.length - 1; i++) {
+                    writeResFile("12/res.txt", nameFiles[i]);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("---");
+        }
+        System.out.println(System.currentTimeMillis() - start);
+    }
+
+    private static void writeResFile(String resPath, File file) throws IOException {
+        char[] tmp = readFile(file);
+        FileWriter fw = new FileWriter(resPath, true);
+        fw.write(tmp);
+        fw.close();
+    }
+
+    private static char[] readFile(File file) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(file);
+        int size = (int) file.length();
+        char[] br = new char[size];
+        int tmp;
+        for (int i = 0; fileInputStream.available() > 0; i++) {
+            br[i] = (char) fileInputStream.read();
+        }
+        fileInputStream.close();
+        return br;
+    }
+
+}
+package Lesson3;
+
+private String localLogLoader() throws Exception {
+        File file = new File("History.txt");
+        LinkedList<String> log = new LinkedList<>();
+        StringBuilder s = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String add = null;
+        while((add = (reader.readLine()))!=null){
+            log.add(add + "\n");
+        }
+        if(log.size()<100){
+            for (int i = 0; i <log.size() ; i++) {
+                s.append(log.get(i));
+            }
+        }else {
+            for (int i = log.size()-100 ; i <100 ; i++) {
+                s.append(log.get(i));
+            }
+        }
+        return s.toString();
+    }
+
+    private void writeToFileAllMessages(String str) throws IOException {
+        FileWriter out = new FileWriter("History.txt", true);
+        out.write(str+ "\n");
+        out.flush();
+    }
+
+
+......
+Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        while (true) {
+                            String str = in.readUTF();
+                            if (str.startsWith("/authok ")) {
+                                callAuthOk.callback(str.split(" ")[1]);
+                                localLogLoader();
+                                break;
+                            }
+                            callMessageToTextArea.callback(str + "\n");
+                            writeToFileAllMessages(str);
+                        }
+                        while (true) {
+                            String str = in.readUTF();
+                            if (str.startsWith("/")) {
+                                if (str.startsWith("/clientslist ")) {
+                                    String[] tokens = str.split(" ");
+                                    callClientsList.callback(tokens);
+                                }
+                            } else {
+                                callMessageToTextArea.callback(str + "\n");
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        callDisconnect.callback();
+                        closeConnection();
+                    }
+                }
+            });
+            t.setDaemon(true);
+            t.start();
