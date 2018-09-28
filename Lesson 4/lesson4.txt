@@ -1,0 +1,139 @@
+﻿package Lesson4;
+
+public class Threads_ABC {
+    static Object monitor = new Object();
+    static volatile char currentLetter = 'A';
+
+    public static void main(String[] args) {
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < 3; i++) {
+                        synchronized (monitor) {
+                            while (currentLetter != 'A') {
+                                monitor.wait();
+                            }
+                            System.out.println(currentLetter);
+                            currentLetter = 'B';
+                            monitor.notifyAll();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < 3; i++) {
+                        synchronized (monitor) {
+                            while (currentLetter != 'B') {
+                                monitor.wait();
+                            }
+                            System.out.println(currentLetter);
+                            currentLetter = 'C';
+                            monitor.notifyAll();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread t3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < 3; i++) {
+                        synchronized (monitor) {
+                            while (currentLetter != 'C') {
+                                monitor.wait();
+                            }
+                            System.out.println(currentLetter);
+                            currentLetter = 'A';
+                            monitor.notifyAll();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+        t3.start();
+        try {
+            t1.join();
+            t2.join();
+            t3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+ExecutorService executorService = Executors.newCachedThreadPool();
+
+public void startWorkerThread() {
+
+        executorService.execute(() -> {
+            try {
+                while (true) {
+                    String msg = in.readUTF();
+                    if (msg.startsWith("/auth ")) {
+                        String[] tokens = msg.split(" ");
+                        String nick = null;
+                        try {
+                            nick = server.getAuthHandler().getNickByLoginPass(tokens[1], tokens[2]);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        if (nick != null) {
+                            if (server.isNickBusy(nick)) {
+                                out.writeUTF("Учетная запись уже используется");
+                                continue;
+                            }
+                            out.writeUTF("/authok " + nick);
+                            setNick(nick);
+                            server.subscribe(ClientHandler.this);
+                            break;
+                        } else {
+                            out.writeUTF("Неверный логин/пароль");
+                        }
+                    }
+                }
+                while (true) {
+                    String msg = in.readUTF();
+                    if (msg.startsWith("/")) {
+                        if (msg.startsWith("/w ")) {
+                            // /w nick2 hello hello
+                            String[] tokens = msg.split(" ", 3);
+                            server.sendPrivateMsg(ClientHandler.this, tokens[1], tokens[2]);
+                        }
+                        if (msg.startsWith("/changenick ")) {
+                            String newNick = null;//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            String[] tokens = msg.split(" ", 2);
+                            newNick = server.getAuthHandler().changeNick(getNick(), tokens[1]);
+                        }
+                    } else {
+                        server.broadcastMsg(ClientHandler.this, msg);
+                    }
+                    System.out.println(msg);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                closeConnection();
+            }
+        });
+
+    }
