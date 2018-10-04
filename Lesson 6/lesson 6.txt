@@ -1,0 +1,172 @@
+package task;
+
+/*
+ *
+ * Написать метод, которому в качестве аргумента передается не пустой одномерный целочисленный массив.
+ * Метод должен вернуть новый массив, который получен путем вытаскивания из исходного массива элементов, идущих после последней четверки.
+ * Входной массив должен содержать хотя бы одну четверку, иначе в методе необходимо выбросить RuntimeException.
+ * Написать набор тестов для этого метода (по 3-4 варианта входных данных).
+ * Вх: [ 1 2 4 4 2 3 4 1 7 ] -> вых: [ 1 7 ].
+ */
+
+import java.util.Arrays;
+
+public class Task1 {
+
+        public static int[] AfterLast4(int[] arr) throws RuntimeException {
+            int n = 0;
+            String str = Arrays.toString(arr);
+            if (str.indexOf(String.valueOf(4)) != -1) {
+                for (int i = 0; i < arr.length; i++) {
+                    if (arr[i] == 4) n = i;
+                }
+                int[] arr1 = new int[arr.length - n - 1];
+                System.arraycopy(arr, n + 1, arr1, 0, arr1.length);
+                return arr1;
+            } else {
+                throw new RuntimeException("4 не найдена");
+            }
+        }
+
+    public static boolean Only1And4(int[] arr) {
+        String str = Arrays.toString(arr);
+        if (str.indexOf(String.valueOf(4)) != -1 && str.indexOf(String.valueOf(1)) != -1) {
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] != 4 || arr[i] != 1) return false;
+            }
+        }
+        return false;
+    }
+}
+
+
+package task;
+
+/*
+ *
+ * Написать метод, который проверяет состав массива из чисел 1 и 4.
+ * Если в нем нет хоть одной четверки или единицы, то метод вернет false;
+ * Написать набор тестов для этого метода (по 3-4 варианта входных данных).
+ *
+ */
+
+public class Task2 {
+        public static boolean Only1And4(int[] arr) {
+            boolean i1 = false, i4 = false;
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] == 1) i1 = true;
+                else if (arr[i] == 4) i4 = true;
+                else return false;
+            }
+            return i1 && i4;
+        }
+    }
+
+package test;
+
+import org.junit.Test;
+import task.Task1;
+
+class Task1ExTest {
+    private Task1 task1;
+
+    public void startTest() {
+        task1 = new Task1();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAfterLast4Ex() {
+        Task1.AfterLast4(new int[]{0, 3, 7, 5, 0, 0, 3, 2});
+    }
+}
+
+
+package test;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import task.Task1;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+@RunWith(Parameterized.class)
+public class Task1Test {
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {new int[]{1, 6, 5, 4, 2, 3, 3}, new int[]{2, 3, 3}},
+                {new int[]{4, 3, 7, 5, 4, 4, 3, 2}, new int[]{3, 2}}
+        });
+    }
+
+    private int[] in;
+    private int[] out;
+
+    public Task1Test(int[] in, int[] out) {
+        this.in = in;
+        this.out = out;
+    }
+
+    private Task1 task1;
+
+    public void startTest() {
+        task1 = new Task1();
+    }
+
+    @Test
+    public void testAfterLast4() {
+        Assert.assertArrayEquals(out, Task1.AfterLast4(in));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAfterLast4Ex() {
+        Task1.AfterLast4(new int[]{0, 3, 7, 5, 0, 0, 3, 2});
+    }
+}
+
+
+package test;
+
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import task.Task2;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+@RunWith(Parameterized.class)
+public class Task2Test {
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {new int[]{1, 1, 4, 4, 4, 1, 4, 1}, true},
+                {new int[]{8, 8, 7, 7, 7, 3, 5, 1}, false},
+                {new int[]{1, 4, 8, 7}, false}
+        });
+    }
+
+    private int[] in;
+    private boolean out;
+
+    public Task2Test(int[] in, boolean out) {
+        this.in = in;
+        this.out = out;
+    }
+
+    private Task2 task2;
+
+    public void startTest() {
+        task2 = new Task2();
+    }
+
+    @Test
+    public void testOnly1And4() {
+        Assert.assertEquals(Task2.Only1And4(in), out);
+    }
+}
